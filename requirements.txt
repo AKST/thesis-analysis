@@ -1,4 +1,8 @@
 greenlet==0.4.10
 msgpack-python==0.4.8
+mypy-lang==0.4.5
 neovim==0.1.10
+psycopg2==2.6.2
 semver==2.6.0
+virtualenv==15.0.3
+virtualfish==1.0.5
