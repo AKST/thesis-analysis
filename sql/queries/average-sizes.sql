@@ -10,7 +10,7 @@ WITH
     WHERE package.id = batch.package
       AND batch.id   = result.batch
     GROUP BY name, ghc_version),
-  
+
   -- aggregate the total size of hi file type
   file_size AS (
     SELECT

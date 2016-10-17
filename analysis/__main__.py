@@ -1,9 +1,9 @@
 import logging as l
 import os.path as p
 
-from os import listdir, stat as fs_stat, walk as fs_walk
+from os       import listdir, stat as fs_stat, walk as fs_walk
 from datetime import datetime, timedelta
-from csv import DictReader as read_csv
+from csv      import DictReader as read_csv
 
 from typing import Any
 from typing import Dict
@@ -25,7 +25,7 @@ class Analyzer:
         self._r_dir = r_dir
         self._should_log = log
 
-    def analysis(self, conn: Any) -> None:
+    def insert_into(self, conn: Any) -> None:
         package_ids = {} # type Dict[str, int]
         with conn.cursor() as cursor:
             # create rows for each package, if not exist
@@ -57,8 +57,6 @@ class Analyzer:
 
     @staticmethod
     def make_instance(r_dir: str, log: bool = False) -> 'Analyzer':
-
-
         if not p.isdir(r_dir):
             raise errors.ArgumentError("r_dir", "wasn't directory path")
 
@@ -108,13 +106,14 @@ class PackageResultAnalyzer:
 
         return PackageResultAnalyzer(meta, taskmeta, path, parent._should_log)
 
+# entry point for analysis, which handles instances etc, etc, etc, etc....
 
 def run_analysis(r_dir: str, log: bool = False, conn: Any = None) -> None:
     if conn is None:
         raise errors.MissingDBError()
     else:
         analysiser = Analyzer.make_instance(r_dir, log)
-        analysiser.analysis(conn)
+        analysiser.insert_into(conn)
 
 # Main function
 
