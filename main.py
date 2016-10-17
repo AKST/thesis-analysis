@@ -52,7 +52,6 @@ class Analyzer:
 
         return Analyzer(uuidmeta, r_dir, log)
 
-
 class PackageResultAnalyzer:
     """This does anaylsis of a package included in a task"""
     def __init__(self, meta: '_TaskMeta',
@@ -163,7 +162,6 @@ class _FSize:
     def __str__(self):
         return "_FSize(path='%s', extension='%s', size='%s')" % (self.path, self.extension, self.size)
 
-
 # Util functions
 
 def _get_sub_dirs(root: str) -> Iterator[PackagePath]:
@@ -207,6 +205,8 @@ class ArgumentError(AnalysisError):
 class NotSpecifiedArg(ArgumentError):
     def __init__(self, arg_name, *args, **kwargs):
         super(NotSpecifiedArg, self).__init__(arg_name, "wasn't specfied", *args, **kwargs)
+
+# Main function
 
 if __name__ == '__main__':
     from sys import argv, stdout
