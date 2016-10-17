@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS batch (
 CREATE TABLE IF NOT EXISTS result (
   id      SERIAL UNIQUE               NOT NULL,
   batch   UUID   REFERENCES batch(id) NOT NULL,
+  version TEXT                        NOT NULL,
   seconds DECIMAL                     NOT NULL
 );
 
