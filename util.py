@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from typing import Any
 from typing import Iterator
 from typing import Union
+from typing import List
 
 
 import errors

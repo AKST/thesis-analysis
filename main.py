@@ -1,7 +1,5 @@
 import logging as l
 import os.path as p
-import semver
-import queries
 
 from os import listdir, stat as fs_stat, walk as fs_walk
 from datetime import datetime, timedelta
@@ -19,11 +17,12 @@ from typing import NamedTuple
 
 import util
 import errors
+import queries
 
 
 class Analyzer:
     def __init__(self,
-                 meta_data: Dict[str, util._TaskMeta],
+                 meta_data: Dict[str, util.TaskMeta],
                  r_dir: str,
                  log: bool,
                  conn: Any) -> None:
@@ -33,19 +32,17 @@ class Analyzer:
         self._should_log = log
 
     def analysis(self) -> None:
-        # create rows for each batch initiated.
+        package_ids = {} # type Dict[str, int]
         with self._conn.cursor() as cursor:
+            # create rows for each package, if not exist
             for package_info in util.get_sub_dirs(self._r_dir):
-                package_info.id = queries.insert_package_get_id(cursor, package_info.name)
-                util.log(self, 'info', "inserting package for %s @ id %s", package_info.name, package_info.id)
+                _id = queries.insert_package_get_id(cursor, package_info)
+                package_ids[package_info.name] = _id
+                util.log(self, 'info', "inserting package for %s @ id %s", package_info.name, _id)
 
-            # for key, meta in self._meta_data.items():
-            #     cursor.execute("""
-            #         INSERT INTO batch (id, package, start_time)
-            #             SELECT (%s, %s, %s)
-            #             WHERE NOT EXISTS
-            #                 (SELECT id FROM batch WHERE id = %s)
-            #     """, (key, meta.package, meta.stime, key))
+            # create rows for each batch initiated, if not exist
+            for key, meta in self._meta_data.items():
+                queries.insert_batch(cursor, meta, package_ids)
 
         for package_info in util.get_sub_dirs(self._r_dir):
             util.log(self, 'info', "checking benchmarks for %s", package_info.name)
