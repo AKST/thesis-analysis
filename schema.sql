@@ -16,11 +16,12 @@ CREATE TABLE IF NOT EXISTS result (
 );
 
 CREATE TABLE IF NOT EXISTS file_output (
-  id             SERIAL UNIQUE NOT NULL,
-  relative_path  TEXT          NOT NULL,
+  id             SERIAL UNIQUE                NOT NULL,
+  result         SERIAL REFERENCES result(id) NOT NULL,
+  relative_path  TEXT                         NOT NULL,
 
   -- some files don't have extensions so it
   -- makes sense that file_extension is nullable
-  file_extension TEXT              NULL,
-  file_size      BIGINT        NOT NULL
+  file_extension TEXT                             NULL,
+  file_size      BIGINT                       NOT NULL
 );
