@@ -25,7 +25,7 @@ def insert_result(cursor: Any, result: util.PackageVersionResult, task: util.Tas
     secs = result.compile_time
     cursor.execute("""
       INSERT INTO result (version, batch, seconds)
-        VALUES (%s, %s, %s) ON CONFLICT (version, batch) DO
+        VALUES (%s::text::semver, %s, %s) ON CONFLICT (version, batch) DO
         UPDATE SET (seconds) = (%s)
         RETURNING id
     """, (result.version, task.id, secs, secs))
