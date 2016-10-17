@@ -26,3 +26,6 @@ def insert_batch(cursor: Any, task: util.TaskMeta, ids: Dict[str, int]) -> None:
                 (SELECT id FROM batch WHERE id = %s)
     """, (task.id, package_id, task.stime, task.id))
 
+def insert_result(cursor: Any, result: util.PackageVersionResult, task: util.TaskMeta) -> None:
+    pass
+

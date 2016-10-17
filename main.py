@@ -5,15 +5,11 @@ from os import listdir, stat as fs_stat, walk as fs_walk
 from datetime import datetime, timedelta
 from csv import DictReader as read_csv
 
-from typing import IO
 from typing import Any
 from typing import Dict
-from typing import List
 from typing import Union
 from typing import Tuple
-from typing import Optional
 from typing import Iterator
-from typing import NamedTuple
 
 import util
 import errors
@@ -24,16 +20,14 @@ class Analyzer:
     def __init__(self,
                  meta_data: Dict[str, util.TaskMeta],
                  r_dir: str,
-                 log: bool,
-                 conn: Any) -> None:
-        self._conn = conn
+                 log: bool) -> None:
         self._meta_data = meta_data
         self._r_dir = r_dir
         self._should_log = log
 
-    def analysis(self) -> None:
+    def analysis(self, conn: Any) -> None:
         package_ids = {} # type Dict[str, int]
-        with self._conn.cursor() as cursor:
+        with conn.cursor() as cursor:
             # create rows for each package, if not exist
             for package_info in util.get_sub_dirs(self._r_dir):
                 _id = queries.insert_package_get_id(cursor, package_info)
@@ -43,25 +37,27 @@ class Analyzer:
             # create rows for each batch initiated, if not exist
             for key, meta in self._meta_data.items():
                 queries.insert_batch(cursor, meta, package_ids)
+                util.log(self, 'info', "inserting batch '%s' into db", key)
 
-        for package_info in util.get_sub_dirs(self._r_dir):
-            util.log(self, 'info', "checking benchmarks for %s", package_info.name)
-            for sub_dir in util.get_sub_dirs(package_info.path):
-                meta = self._meta_data[sub_dir.name]
+            for package_info in util.get_sub_dirs(self._r_dir):
+                util.log(self, 'info', "checking benchmarks for %s", package_info.name)
+                for sub_dir in util.get_sub_dirs(package_info.path):
+                    meta = self._meta_data[sub_dir.name]
 
-                try:
-                    task = PackageResultAnalyzer.create(meta, sub_dir.path, parent=self)
-                except errors.InvalidTaskDir as e:
-                    util.log(self, 'warn', 'invalid task directory %s', e.task_dir)
-                    continue
+                    try:
+                        task = PackageResultAnalyzer.create(meta, sub_dir.path, parent=self)
+                    except errors.InvalidTaskDir as e:
+                        util.log(self, 'warn', 'invalid task directory %s', e.task_dir)
+                        continue
 
-                for result in task.results():
-                    util.log(self, 'debug', "%s", result)
+                    for result in task.results():
+                        util.log(self, 'debug', "%s", result)
+                        util.log(self, 'info', "inserting result for '%s' of batch(id='%s')", result.version, meta.id)
+                        queries.insert_result(cursor, result, meta)
 
     @staticmethod
-    def make_instance(r_dir: str, log: bool = False, conn: Any = None) -> 'Analyzer':
-        if conn is None:
-            raise errors.MissingDBError()
+    def make_instance(r_dir: str, log: bool = False) -> 'Analyzer':
+
 
         if not p.isdir(r_dir):
             raise errors.ArgumentError("r_dir", "wasn't directory path")
@@ -74,19 +70,17 @@ class Analyzer:
         with open(uuid_meta_filename) as metafile:
             uuidmeta = { row['id']: util.TaskMeta.create(**row) for row in read_csv(metafile) }
 
-        return Analyzer(uuidmeta, r_dir, log, conn)
+        return Analyzer(uuidmeta, r_dir, log)
 
 class PackageResultAnalyzer:
     """This does anaylsis of a package included in a task"""
     def __init__(self, meta: util.TaskMeta,
                        task: Dict[str, util.PackageResultMeta],
                        path: str,
-                       log: bool,
-                       conn: Any) -> None:
+                       log: bool) -> None:
         self._meta = meta
         self._task = task
         self._path = path
-        self._conn = conn
         self._should_log = log
 
     def _calc_build_size(self, version: str) -> Iterator[util.FSize]:
@@ -112,12 +106,15 @@ class PackageResultAnalyzer:
         with open(time_stamps_f, mode='r') as metafile:
             taskmeta = { row['version']: util.PackageResultMeta.create(**row) for row in read_csv(metafile) }
 
-        return PackageResultAnalyzer(meta, taskmeta, path, parent._should_log, parent._conn)
+        return PackageResultAnalyzer(meta, taskmeta, path, parent._should_log)
 
 
 def run_analysis(r_dir: str, log: bool = False, conn: Any = None) -> None:
-    analysiser = Analyzer.make_instance(r_dir, log, conn)
-    analysiser.analysis()
+    if conn is None:
+        raise errors.MissingDBError()
+    else:
+        analysiser = Analyzer.make_instance(r_dir, log)
+        analysiser.analysis(conn)
 
 # Main function
 
@@ -125,7 +122,6 @@ if __name__ == '__main__':
     from psycopg2 import connect as db_connect
     from sys import argv, stderr
     from os  import environ
-
 
     THESIS_L_FMT_DEFAULT = "[%(levelname)s %(asctime)s] :: %(message)s"
     THESIS_L_LEVEL_FLAG  = 'THESIS_L_LEVEL'
