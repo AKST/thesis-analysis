@@ -9,8 +9,8 @@ from typing import Iterator
 from typing import Union
 from typing import List
 
-
 import errors
+
 
 class PackagePath:
     def __init__(self, name: str, path: str, id: Union[None, int] = None) -> None:

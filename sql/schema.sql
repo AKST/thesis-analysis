@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS package (
   id   SERIAL UNIQUE NOT NULL,
-  name TEXT          NOT NULL
+  name TEXT   UNIQUE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS batch (
@@ -16,6 +16,9 @@ CREATE TABLE IF NOT EXISTS result (
   seconds DECIMAL                     NOT NULL
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS unique_result_batch_version
+  ON result (batch, version);
+
 CREATE TABLE IF NOT EXISTS file_output (
   id             SERIAL UNIQUE                NOT NULL,
   result         SERIAL REFERENCES result(id) NOT NULL,
@@ -26,3 +29,7 @@ CREATE TABLE IF NOT EXISTS file_output (
   file_extension TEXT                             NULL,
   file_size      BIGINT                       NOT NULL
 );
+
+
+CREATE UNIQUE INDEX IF NOT EXISTS unique_fileoutput_relativepath_result
+  ON file_output (result, relative_path);
