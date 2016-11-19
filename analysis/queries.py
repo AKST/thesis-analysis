@@ -13,13 +13,22 @@ def insert_package_get_id(cursor: Any, package: util.PackagePath) -> int:
     """, (name, name))
     return cursor.fetchone()[0]
 
+def insert_script(cursor: Any, script: util.FileName) -> None:
+    with open(script.path, 'r') as f:
+        contents = f.read()
+        cursor.execute("""
+          INSERT INTO benchmark_script (id, repr) VALUES (decode(%s, 'hex'), %s)
+            ON CONFLICT (id)
+            DO UPDATE SET (repr) = (%s)
+        """, (script.name, contents, contents))
+
 def insert_batch(cursor: Any, task: util.TaskMeta, ids: Dict[str, int]) -> None:
     package_id = ids[task.package]
     cursor.execute("""
-      INSERT INTO batch (id, package, start_time)
-        VALUES (%s, %s, %s) ON CONFLICT (id) DO
-        UPDATE SET (id, package, start_time) = (%s, %s, %s)
-    """, (task.id, package_id, task.stime) * 2)
+      INSERT INTO batch (id, package, start_time, checksum)
+        VALUES (%s, %s, %s, decode(%s, 'hex')) ON CONFLICT (id) DO
+        UPDATE SET (id, package, start_time, checksum) = (%s, %s, %s, decode(%s, 'hex'))
+    """, (task.id, package_id, task.stime, task.checksum) * 2)
 
 def insert_result(cursor: Any, result: util.PackageVersionResult, task: util.TaskMeta) -> None:
     secs = result.compile_time

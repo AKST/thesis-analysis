@@ -5,10 +5,17 @@ CREATE TABLE IF NOT EXISTS package (
   name TEXT   UNIQUE NOT NULL
 );
 
+
+CREATE TABLE IF NOT EXISTS benchmark_script (
+  id   bytea  UNIQUE NOT NULL,
+  repr text UNIQUE NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS batch (
-  id         UUID   UNIQUE                 NOT NULL,
-  package    SERIAL REFERENCES package(id) NOT NULL,
-  start_time TIMESTAMP                     NOT NULL
+  id         UUID   UNIQUE                          NOT NULL,
+  package    SERIAL REFERENCES package(id)          NOT NULL,
+  start_time TIMESTAMP                              NOT NULL,
+  checksum   bytea  REFERENCES benchmark_script(id) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS result (

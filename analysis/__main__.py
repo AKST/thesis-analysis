@@ -16,6 +16,9 @@ import errors
 import queries
 
 
+_NOT_SECRET_DIR = lambda name: not name.startswith('__')
+
+
 class Analyzer:
     def __init__(self,
                  meta_data: Dict[str, util.TaskMeta],
@@ -29,17 +32,21 @@ class Analyzer:
         package_ids = {} # type Dict[str, int]
         with conn.cursor() as cursor:
             # create rows for each package, if not exist
-            for package_info in util.get_sub_dirs(self._r_dir):
+            for package_info in util.get_sub_dirs(self._r_dir, _NOT_SECRET_DIR):
                 _id = queries.insert_package_get_id(cursor, package_info)
                 package_ids[package_info.name] = _id
                 util.log(self, 'info', "inserting package for %s @ id %s", package_info.name, _id)
+
+            for script in util.get_file_names(p.join(self._r_dir, '__checksums')):
+                util.log(self, 'info', "inserting benchmark_script for %s", script.name)
+                queries.insert_script(cursor, script)
 
             # create rows for each batch initiated, if not exist
             for key, meta in self._meta_data.items():
                 queries.insert_batch(cursor, meta, package_ids)
                 util.log(self, 'info', "inserting batch '%s' into db", key)
 
-            for package_info in util.get_sub_dirs(self._r_dir):
+            for package_info in util.get_sub_dirs(self._r_dir, _NOT_SECRET_DIR):
                 util.log(self, 'info', "checking benchmarks for %s", package_info.name)
                 for sub_dir in util.get_sub_dirs(package_info.path):
                     meta = self._meta_data[sub_dir.name]

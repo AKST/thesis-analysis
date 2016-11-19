@@ -8,6 +8,7 @@ from typing import Any
 from typing import Iterator
 from typing import Union
 from typing import List
+from typing import Callable
 
 import errors
 
@@ -33,17 +34,18 @@ class PackageVersionResult:
 
 class TaskMeta:
     """ representation of data in uuid-meta.csv"""
-    def __init__(self, stime: datetime, id: str, package: str) -> None:
+    def __init__(self, stime: datetime, id: str, package: str, checksum: str) -> None:
         self.package = package
         self.stime = stime
         self.id = id
+        self.checksum = checksum
 
     @staticmethod
-    def create(stime: str, id: str, package: str) -> 'TaskMeta':
+    def create(stime: str, id: str, package: str, checksum: str) -> 'TaskMeta':
         try:
             as_int = int(stime)
             parsed = datetime.fromtimestamp(as_int)
-            return TaskMeta(parsed, id, package)
+            return TaskMeta(parsed, id, package, checksum)
         except:
             raise errors.CorruptDataError("stime is not a unix time stamp")
 
@@ -85,11 +87,24 @@ class FSize:
     def __str__(self):
         return "FSize(path='%s', extension='%s', size='%s')" % (self.path, self.extension, self.size)
 
+class FileName:
+    def __init__(self, path, name):
+        self.path = path
+        self.name = name
 
-def get_sub_dirs(root: str) -> Iterator[PackagePath]:
+
+def get_file_names(root: str) -> Iterator[FileName]:
     for name in listdir(root):
         full_path = p.join(root, name)
-        if p.isdir(full_path):
+        if p.isfile(full_path):
+            yield FileName(full_path, name)
+
+def get_sub_dirs(root: str, predicate: Union[None, Callable[[str], bool]] = None) -> Iterator[PackagePath]:
+    if predicate is None:
+        predicate = lambda name: True
+    for name in listdir(root):
+        full_path = p.join(root, name)
+        if p.isdir(full_path) and predicate(name):
             yield PackagePath(name, full_path)
 
 def log(loggable: Any, level: str, *args, **kwargs) -> None:

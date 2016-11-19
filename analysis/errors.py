@@ -18,7 +18,7 @@ class InvalidTaskDir(AnalysisError):
         self.task_dir = path
 
 class ArgumentError(AnalysisError):
-    def __init__(self, arg_name, *args, **kwargs):
+    def __init__(self, arg_name, problem, *args, **kwargs):
         message = "'%s', %s" % (arg_name, problem)
         super(ArgumentError, self).__init__(message, *args, **kwargs)
 
