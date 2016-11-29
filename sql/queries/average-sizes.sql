@@ -1,5 +1,6 @@
 WITH
 
+
   -- aggregate the average compilation times
   time_avg AS (
     SELECT
