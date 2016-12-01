@@ -23,12 +23,21 @@ class Analyzer:
     def __init__(self,
                  meta_data: Dict[str, util.TaskMeta],
                  r_dir: str,
+                 package_meta: Dict[str, Any],
                  log: bool) -> None:
+        """
+        Consider using `make_instance' instead of the constructor directly
+        """
+        self._package_meta = package_meta
         self._meta_data = meta_data
         self._r_dir = r_dir
         self._should_log = log
 
     def insert_into(self, conn: Any) -> None:
+        """
+        Basically traverese over the directory and inserts all the junk into
+        the database #YOLO #PleaseWriteMoreComprehensiveDocumentation #TODO
+        """
         package_ids = {} # type Dict[str, int]
         with conn.cursor() as cursor:
             # create rows for each package, if not exist
@@ -64,7 +73,12 @@ class Analyzer:
                         queries.insert_result(cursor, result, meta)
 
     @staticmethod
-    def make_instance(r_dir: str, log: bool = False) -> 'Analyzer':
+    def make_instance(r_dir: str, meta: Dict[str, Any], log: bool = False) -> 'Analyzer':
+        """
+        Factory method of Analyzer which handles validation, using
+        this is recommended over using the constructor directly unless
+        validation on input has already been performed.
+        """
         if not p.isdir(r_dir):
             raise errors.ArgumentError("r_dir", "wasn't directory path")
 
@@ -76,7 +90,7 @@ class Analyzer:
         with open(uuid_meta_filename) as metafile:
             uuidmeta = { row['id']: util.TaskMeta.create(**row) for row in read_csv(metafile) }
 
-        return Analyzer(uuidmeta, r_dir, log)
+        return Analyzer(uuidmeta, r_dir, meta, log)
 
 class PackageResultAnalyzer:
     """This does anaylsis of a package included in a task"""
@@ -116,19 +130,22 @@ class PackageResultAnalyzer:
 
 # entry point for analysis, which handles instances etc, etc, etc, etc....
 
-def run_analysis(r_dir: str, log: bool = False, conn: Any = None) -> None:
+def run_analysis(r_dir: str, meta: Dict[str, Any], log: bool = False, conn: Any = None) -> None:
     if conn is None:
         raise errors.MissingDBError()
     else:
-        analysiser = Analyzer.make_instance(r_dir, log)
+        analysiser = Analyzer.make_instance(r_dir, meta, log)
         analysiser.insert_into(conn)
 
 # Main function
 
 if __name__ == '__main__':
     from psycopg2 import connect as db_connect
+
+    from json import load as load_json_file
     from sys import stderr
     from os  import environ
+
     from args import parser as arg_parser
 
     args = arg_parser.parse_args()
@@ -156,8 +173,9 @@ if __name__ == '__main__':
     l.debug("reading data from %s", args.data_folder)
 
     try:
-        with pg_connection() as conn:
-            run_analysis(r_dir=args.data_folder, log=True, conn=conn)
+        with load_json_file(args.config_file) as config:
+            with pg_connection() as conn:
+                run_analysis(r_dir=args.data_folder, meta=config, log=True, conn=conn)
     except errors.AnalysisError as e:
         l.exception("%s", e)
 
