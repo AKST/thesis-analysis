@@ -33,6 +33,7 @@ class Analyzer:
         with conn.cursor() as cursor:
             # create rows for each package, if not exist
             for package_info in util.get_sub_dirs(self._r_dir, _NOT_SECRET_DIR):
+                # TODO get package meta data
                 _id = queries.insert_package_get_id(cursor, package_info)
                 package_ids[package_info.name] = _id
                 util.log(self, 'info', "inserting package for %s @ id %s", package_info.name, _id)
@@ -126,47 +127,37 @@ def run_analysis(r_dir: str, log: bool = False, conn: Any = None) -> None:
 
 if __name__ == '__main__':
     from psycopg2 import connect as db_connect
-    from sys import argv, stderr
+    from sys import stderr
     from os  import environ
+    from args import parser as arg_parser
 
-    THESIS_L_FMT_DEFAULT = "[%(levelname)s %(asctime)s] :: %(message)s"
-    THESIS_L_LEVEL_FLAG  = 'THESIS_L_LEVEL'
-    THESIS_L_FMT_FLAG    = 'THESIS_L_FORMAT'
-    THESIS_PG_DB_FLAG    = 'THESIS_PG_DB'
-    THESIS_PG_HOST_FLAG  = 'THESIS_PG_HOST'
-    THESIS_PG_USER_FLAG  = 'THESIS_PG_USER'
-    THESIS_PG_PSWD_FLAG  = 'THESIS_PG_PSWD'
+    args = arg_parser.parse_args()
 
     def get_logging_level() -> Tuple[int, Union[None, str]]:
-        l_level = environ.get(THESIS_L_LEVEL_FLAG, 'ERROR')
+        l_level = args.log_level
         if hasattr(l, l_level):
             return getattr(l, l_level), None
         else:
             return l.ERROR, ("'%s' is not a valid logging level" % l_level)
 
     def pg_connection() -> Any:
-        dbname = environ.get(THESIS_PG_DB_FLAG, 'thesis-data')
-        host = environ.get(THESIS_PG_HOST_FLAG, 'localhost')
-        user = environ.get(THESIS_PG_USER_FLAG, 'postgres')
-        pswd = environ.get(THESIS_PG_PSWD_FLAG, '')
+        dbname = args.db_name
+        host = args.db_host
+        user = args.db_user
+        pswd = args.db_pass
         return db_connect(host=host, dbname=dbname, user=user, password=pswd)
 
-    log_fmt = environ.get(THESIS_L_FMT_FLAG, THESIS_L_FMT_DEFAULT)
     log_lvl, err_msg = get_logging_level()
-    l.basicConfig(level=log_lvl, format=log_fmt)
+    l.basicConfig(level=log_lvl, format=args.log_format)
 
     if isinstance(err_msg, str):
         l.error("Non fatal error, but FYI; %s...", err_msg)
 
-    if len(argv) < 2:
-        l.error("Program requires 2 arguments")
-        exit(1)
-    else:
-        data_folder = argv[1]
-        l.debug("reading data from %s", data_folder)
-        try:
-            with pg_connection() as conn:
-                run_analysis(r_dir=data_folder, log=True, conn=conn)
-        except errors.AnalysisError as e:
-            l.exception("%s", e)
+    l.debug("reading data from %s", args.data_folder)
+
+    try:
+        with pg_connection() as conn:
+            run_analysis(r_dir=args.data_folder, log=True, conn=conn)
+    except errors.AnalysisError as e:
+        l.exception("%s", e)
 

@@ -4,6 +4,7 @@ from typing import Dict
 import util
 
 def insert_package_get_id(cursor: Any, package: util.PackagePath) -> int:
+    # TODO add package meta data
     name = package.name
     cursor.execute("""
       INSERT INTO package (name) VALUES (%s)
