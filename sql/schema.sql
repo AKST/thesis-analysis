@@ -24,7 +24,9 @@ CREATE TABLE IF NOT EXISTS thesis.benchmark_script (
   id bytea
     UNIQUE NOT NULL,
   repr text
-    UNIQUE NOT NULL,
+    NOT NULL,
+  last_modified TIMESTAMP
+    NOT NULL,
   activity_timestamp TIMESTAMP
     DEFAULT current_timestamp
 );
