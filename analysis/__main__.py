@@ -42,8 +42,8 @@ class Analyzer:
         with conn.cursor() as cursor:
             # create rows for each package, if not exist
             for package_info in util.get_sub_dirs(self._r_dir, _NOT_SECRET_DIR):
-                # TODO get package meta data
-                _id = queries.insert_package_get_id(cursor, package_info)
+                package_meta = self._package_meta['target'][package_info.name]
+                _id = queries.insert_package_get_id(cursor, package_info, package_meta)
                 package_ids[package_info.name] = _id
                 util.log(self, 'info', "inserting package for %s @ id %s", package_info.name, _id)
 
@@ -150,6 +150,8 @@ if __name__ == '__main__':
 
     args = arg_parser.parse_args()
 
+    print(args)
+
     def get_logging_level() -> Tuple[int, Union[None, str]]:
         l_level = args.log_level
         if hasattr(l, l_level):
@@ -173,9 +175,10 @@ if __name__ == '__main__':
     l.debug("reading data from %s", args.data_folder)
 
     try:
-        with load_json_file(args.config_file) as config:
-            with pg_connection() as conn:
-                run_analysis(r_dir=args.data_folder, meta=config, log=True, conn=conn)
+        with open(args.config_file, 'r') as f:
+            config_meta = load_json_file(f)
+        with pg_connection() as conn:
+            run_analysis(r_dir=args.data_folder, meta=config_meta, log=True, conn=conn)
     except errors.AnalysisError as e:
         l.exception("%s", e)
 

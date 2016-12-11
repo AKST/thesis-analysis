@@ -113,11 +113,11 @@ CREATE OPERATOR <> (
   procedure  = semver_neq,
   commutator = <>);
 
-CREATE OPERATOR CLASS semver_ops
-  DEFAULT FOR TYPE semver USING btree AS
-    OPERATOR 1 <,
-    OPERATOR 2 <=,
-    OPERATOR 3 =,
-    OPERATOR 4 >=,
-    OPERATOR 5 >,
-    function 1 semver_comp(semver, semver);
+-- CREATE OPERATOR CLASS semver_ops
+--   DEFAULT FOR TYPE semver USING btree AS
+--     OPERATOR 1 <,
+--     OPERATOR 2 <=,
+--     OPERATOR 3 =,
+--     OPERATOR 4 >=,
+--     OPERATOR 5 >,
+--     function 1 semver_comp(semver, semver);
