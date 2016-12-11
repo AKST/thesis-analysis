@@ -27,8 +27,19 @@ GRANT usage, select ON ALL SEQUENCES IN SCHEMA thesis TO producer;
 GRANT usage, select, update ON ALL SEQUENCES IN SCHEMA thesis TO producer;
 
 -- allows roles to utilise tables
-GRANT select, references ON ALL TABLES IN SCHEMA thesis TO consumer;
-GRANT select, references, delete, insert, update ON ALL TABLES IN SCHEMA thesis TO producer;
+GRANT
+  select,
+  references
+ON ALL TABLES IN SCHEMA thesis TO consumer;
+
+GRANT
+  select,
+  references,
+  truncate,
+  delete,
+  insert,
+  update
+ON ALL TABLES IN SCHEMA thesis TO producer;
 
 -- allows roles to functions sequences
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA thesis TO consumer;
