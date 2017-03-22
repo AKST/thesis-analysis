@@ -1,6 +1,7 @@
 CREATE SCHEMA thesis;
 
 \i sql/types/semver.sql
+\i sql/types/average.sql
 
 
 CREATE TABLE IF NOT EXISTS thesis.package (
