@@ -2,6 +2,7 @@ CREATE SCHEMA thesis;
 
 \i sql/types/semver.sql
 \i sql/types/average.sql
+\i sql/queries/average-sizes.sql
 
 
 CREATE TABLE IF NOT EXISTS thesis.package (
@@ -28,9 +29,14 @@ CREATE TABLE IF NOT EXISTS thesis.benchmark_script (
     NOT NULL,
   last_modified TIMESTAMP
     NOT NULL,
+  tags TEXT[]
+    NOT NULL
+    DEFAULT '{}',
   activity_timestamp TIMESTAMP
     DEFAULT current_timestamp
 );
+
+\i sql/updates/script_table.sql
 
 CREATE TABLE IF NOT EXISTS thesis.batch (
   id UUID
@@ -94,4 +100,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS unique_result_batch_version
 -- unique combination of result and relative_path
 CREATE UNIQUE INDEX IF NOT EXISTS unique_fileoutput_relativepath_result
   ON thesis.file_output (result, relative_path);
+
+\i sql/views/hashed.sql
+\i sql/views/latest.sql
+
+
+
 
