@@ -11,9 +11,9 @@ from typing import Union
 from typing import Tuple
 from typing import Iterator
 
-import util
-import errors
-import queries
+import common.util as util
+import common.errors as errors
+import common.queries as queries
 
 
 _NOT_SECRET_DIR = lambda name: not name.startswith('__')
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     from sys import stderr
     from os  import environ
 
-    from args import parser as arg_parser
+    from common.args import parser as arg_parser
 
     args = arg_parser.parse_args()
 

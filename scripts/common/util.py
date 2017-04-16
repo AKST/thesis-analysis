@@ -10,7 +10,7 @@ from typing import Union
 from typing import List
 from typing import Callable
 
-import errors
+import common.errors as errors
 
 
 class PackagePath:

@@ -2,7 +2,8 @@ from typing import Any
 from typing import Dict
 
 from os.path import getmtime
-import util
+
+import common.util as util
 
 def insert_package_get_id(cursor: Any, package: util.PackagePath, meta: Dict[str, Any]) -> int:
     # TODO add package meta data
