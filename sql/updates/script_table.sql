@@ -26,10 +26,30 @@ UPDATE thesis.benchmark_script
   WHERE not(repr ~ '-O')
     AND not(thesis.tags_contains(tags, 'optimization:?'));
 
+-- tag optimization level 0
+UPDATE thesis.benchmark_script
+  SET tags = tags || array['optimization:*']
+  WHERE repr ~ '-O\*'
+    AND not(thesis.tags_contains(tags, 'optimization:*'));
+
+-- tag optimization level 0
+UPDATE thesis.benchmark_script
+  SET tags = tags || array['optimization:0']
+  WHERE repr ~ '-O0'
+    AND not(thesis.tags_contains(tags, 'optimization:0'));
+
+-- tag optimization level 1
+UPDATE thesis.benchmark_script
+  SET tags = tags || array['optimization:1']
+  WHERE repr ~ '-O1'
+    AND not(thesis.tags_contains(tags, 'optimization:1'));
+
+-- tag optimization level 2
 UPDATE thesis.benchmark_script
   SET tags = tags || array['optimization:2']
   WHERE repr ~ '-O2'
     AND not(thesis.tags_contains(tags, 'optimization:2'));
+
 
 -- for scripts where both the output size and compile time
 -- benchmarks use consistent optimization flags, there are
@@ -37,6 +57,6 @@ UPDATE thesis.benchmark_script
 -- where the representation matches the similarity checks
 UPDATE thesis.benchmark_script
   SET tags = tags || array['shared_optimization']
-  WHERE ((repr ~ 'local target_optimization="-O2"') OR not(repr ~ '-O'))
+  WHERE ((repr ~ 'local target_optimization="-O[0-2\*]"') OR not(repr ~ '-O'))
     AND not(thesis.tags_contains(tags, 'shared_optimization'));
 
