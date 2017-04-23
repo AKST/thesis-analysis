@@ -3,6 +3,7 @@ from json import dump as dump_json
 from decimal import Decimal
 from functools import reduce
 
+import common.errors as errors
 from data.models.base import ModelEncoder
 
 
@@ -36,7 +37,9 @@ def format_json(w_file, cursor, single=False, **kwargs):
     for row in cursor:
         entries.append(row)
 
-    if single:
+    if single and len(entries) < 1:
+        raise errors.UnknownResource()
+    elif single and len(entries) > 0:
         resource['data'] = entries[0]
     dump_json(resource, w_file, cls=ModelEncoder)
 
@@ -58,7 +61,7 @@ def from_db(Model, conn, output, args):
 if __name__ == '__main__':
     from sys import stdout, exit
 
-    import common.errors as errors
+
     from data.models.script import Script
     from data.models.package import Package
     from data.models.results import ResultsReadable, ResultsAPI

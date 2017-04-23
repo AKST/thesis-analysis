@@ -83,7 +83,7 @@ class ResultsAPI(util.ModelBase):
         self.script_hash = bytearray(script_hash).hex()
 
     def get_id(self):
-        return "%s:%s:%s" % (self.package_id, self.ghc_version, self.script_hash)
+        return "%s:%s:%s:%s" % (self.package_id, self.ghc_version, self.file_extension, self.script_hash)
 
     @classmethod
     def _sql(cls, cursor, meta, id=None) -> str:

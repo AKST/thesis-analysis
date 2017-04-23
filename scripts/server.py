@@ -1,6 +1,7 @@
 import logging
 from flask import Flask, request, g, jsonify
 from io import StringIO
+from uuid import uuid4
 
 from format import from_db
 import common.errors as errors
@@ -29,17 +30,21 @@ def query_model(Model, query):
 
 @app.errorhandler(404)
 def url_not_found(error):
-    return handle_invalid_usage(errors.LocationNotFound())
+    return format_error(errors.LocationNotFound())
 
 @app.errorhandler(errors.ThesisError)
-def handle_invalid_usage(error):
-    logging.error(error)
+def format_error(error):
+    logging.error("REQUEST: %s ERROR: %s" % (g.request_id, error))
     response = jsonify({
         'jsonapi': { 'version': '1.0' },
         'errors': [error.format_error()],
     })
     response.status_code = error.status_code
     return response
+
+@app.errorhandler(Exception)
+def handle_unknown_error(error):
+    return format_error(errors.InternalError(error))
 
 @app.route("/api/v0/packages", methods=["GET"])
 def get_packages():
@@ -48,7 +53,7 @@ def get_packages():
 
 @app.route("/api/v0/packages/<id>", methods=["GET"])
 def get_package(id=None):
-    query = DataQuery({}, query_id=id)
+    query = DataQuery({}, query_id=int(id))
     return query_model(Package, query)
 
 @app.route("/api/v0/scripts", methods=["GET"])
@@ -92,6 +97,10 @@ if __name__ == '__main__':
 
     @app.before_request
     def setup_request():
+        g.request_id = uuid4()
+        user_agent = request.headers.get('User-Agent')
+        message = "REQUEST: %s IP: %s USER-AGENT: %s" % (g.request_id, request.remote_addr, user_agent)
+        logging.info(message)
         accepts = request.headers.get('Accept', '')
         if accepts == _JSON_API_CONTENT_TYPE:
             g.db_connection = pg_connection(args)

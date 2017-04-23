@@ -70,6 +70,21 @@ class LocationNotFound(APIError):
     def __init__(self, *args, **kwargs):
         super(LocationNotFound, self).__init__(self._api_message, *args, **kwargs)
 
+class InternalError(APIError):
+    status_code = 500
+    _code = _code_inc()
+    _api_title = 'Unantisipated Error'
+    _api_message = 'oh no'
+    def __init__(self, e, *args, **kwargs):
+        super(InternalError, self).__init__(e, *args, **kwargs)
+
+class UnknownResource(APIError):
+    status_code = 404
+    _code = _code_inc()
+    _api_title = "Unknown Resource"
+    _api_message = "The resource you requested is unknown"
+    def __init__(self, *args, **kwargs):
+        super(UnknownResource, self).__init__(self._api_message, *args, **kwargs)
 
 class ImmpossibleAcceptType(APIError):
     status_code = 400
