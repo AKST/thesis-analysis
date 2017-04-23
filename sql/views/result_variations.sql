@@ -19,6 +19,16 @@ CREATE OR REPLACE VIEW thesis.results_readable AS
            , last_modified DESC
            ;
 
+-- a view for producing human readable results
+CREATE OR REPLACE VIEW thesis.results_api_latest_O2 AS
+  SELECT results.*
+    FROM thesis.results_hashed as results
+      INNER JOIN (SELECT script.id AS id
+        FROM thesis.benchmark_script AS script
+        WHERE thesis.tags_contains(script.tags, 'shared_optimization')
+          AND thesis.tags_contains(script.tags, 'optimization:2')
+        ORDER BY script.activity_timestamp DESC LIMIT 1) as script
+      ON script.id = results.script_hash;
 
 -- view of latest results
 CREATE OR REPLACE VIEW thesis.results_latest AS
@@ -36,7 +46,7 @@ CREATE OR REPLACE VIEW thesis.results_latest_O2 AS
       INNER JOIN (SELECT script.id AS id
         FROM thesis.benchmark_script AS script
         WHERE thesis.tags_contains(script.tags, 'shared_optimization')
-          AND thesis.tags_contains(script.tags, 'optmizations:2')
+          AND thesis.tags_contains(script.tags, 'optimization:2')
         ORDER BY script.activity_timestamp DESC LIMIT 1) as script
       ON script.id = results.script_hash;
 
