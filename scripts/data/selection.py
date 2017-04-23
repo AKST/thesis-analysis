@@ -60,7 +60,7 @@ def get_scripts(flags, id=None):
 def _scripts_without_repr(where):
     def impl(cursor, count, offset):
         return format_query(cursor, count, offset, [
-            " SELECT id, tags, repr FROM thesis.benchmark_script ",
+            " SELECT id, tags FROM thesis.benchmark_script ",
             where.format(),
         ])
     return impl
@@ -68,7 +68,7 @@ def _scripts_without_repr(where):
 def _scripts_with_repr(where):
     def impl(cursor, count, offset):
         return format_query(cursor, count, offset, [
-            " SELECT id, tags FROM thesis.benchmark_script ",
+            " SELECT id, tags, repr FROM thesis.benchmark_script ",
             where.format(),
         ])
     return impl
@@ -162,7 +162,5 @@ def format_query(cursor, count, offset, chunks):
     if count != None:
         query += " LIMIT %s "
         formats += (count,)
-    q = cursor.mogrify(query, formats)
-    print(q)
-    return q
+    return cursor.mogrify(query, formats)
 
