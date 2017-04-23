@@ -1,3 +1,11 @@
+
+_state = [0]
+def _code_inc():
+    result = _state[0]
+    _state[0] += 1
+    return result
+
+
 class ThesisError(Exception):
     status_code = 500
     _api_title = "Error"
@@ -46,7 +54,7 @@ class NotSpecifiedArg(ArgumentError):
 
 class IllegalOperation(ThesisError):
     status_code = 500
-    _code = 2
+    _code = _code_inc()
     def __init__(self, *args, **kwargs):
         message = "Illegal operation was performed"
         super(IllegalOperation, self).__init__(message, *args, **kwargs)
@@ -54,9 +62,18 @@ class IllegalOperation(ThesisError):
 class APIError(ThesisError):
     pass
 
+class LocationNotFound(APIError):
+    status_code = 404
+    _code = _code_inc()
+    _api_title = 'Not Found'
+    _api_message = 'The url you request does not exist'
+    def __init__(self, *args, **kwargs):
+        super(LocationNotFound, self).__init__(self._api_message, *args, **kwargs)
+
+
 class ImmpossibleAcceptType(APIError):
     status_code = 400
-    _code = 1
+    _code = _code_inc()
     _api_title = 'Invalid accept header'
 
     def __init__(self, mimetypes, *args, **kwargs):

@@ -27,6 +27,10 @@ def query_model(Model, query):
     from_db(Model, g.db_connection, buffer, query)
     return buffer.getvalue()
 
+@app.errorhandler(404)
+def url_not_found(error):
+    return handle_invalid_usage(errors.LocationNotFound())
+
 @app.errorhandler(errors.ThesisError)
 def handle_invalid_usage(error):
     logging.error(error)
