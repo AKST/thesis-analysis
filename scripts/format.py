@@ -5,6 +5,7 @@ from functools import reduce
 
 from data.models.base import ModelEncoder
 
+
 def format_csv(w_file, cursor, **kwargs):
     def _fmt_col(item):
         if isinstance(item, str):
@@ -24,7 +25,11 @@ def format_csv(w_file, cursor, **kwargs):
 
 def format_json(w_file, cursor, single=False, **kwargs):
     entries = []
-    resource = { "meta": {}, "data": entries }
+    resource = {
+        "meta": {},
+        "data": entries,
+        "jsonapi": { "version": "1.0" },
+    }
     if cursor.label:
         resource['meta']['type'] = cursor.label
 
@@ -34,7 +39,6 @@ def format_json(w_file, cursor, single=False, **kwargs):
     if single:
         resource['data'] = entries[0]
     dump_json(resource, w_file, cls=ModelEncoder)
-
 
 def format_into(w_file, fmt, cursor, **kwargs):
     if fmt == 'csv':
@@ -49,6 +53,7 @@ def from_db(Model, conn, output, args):
     else:
         with Model.all(conn, args) as items:
             format_into(output, fmt=args.format, cursor=items)
+
 
 if __name__ == '__main__':
     from sys import stdout, exit
