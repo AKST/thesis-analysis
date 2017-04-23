@@ -5,7 +5,7 @@ from functools import reduce
 
 from data.models.base import ModelEncoder
 
-def format_csv(w_file, cursor):
+def format_csv(w_file, cursor, **kwargs):
     def _fmt_col(item):
         if isinstance(item, str):
             return item
@@ -38,11 +38,11 @@ def format_json(w_file, cursor, single=False, **kwargs):
 
 def format_into(w_file, fmt, cursor, **kwargs):
     if fmt == 'csv':
-        format_csv(w_file, cursor)
+        format_csv(w_file, cursor, **kwargs)
     elif fmt == 'json':
         format_json(w_file, cursor, **kwargs)
 
-def from_db(conn, output, args):
+def from_db(Model, conn, output, args):
     if args.query_id:
         with Model.find(conn, args) as items:
             format_into(output, fmt=args.format, cursor=items, single=True)
@@ -51,7 +51,6 @@ def from_db(conn, output, args):
             format_into(output, fmt=args.format, cursor=items)
 
 if __name__ == '__main__':
-    from psycopg2 import connect as db_connect
     from sys import stdout, exit
 
     import common.errors as errors
@@ -81,7 +80,7 @@ if __name__ == '__main__':
 
     try:
         with pg_connection(args) as conn:
-            from_db(conn, stdout, args)
+            from_db(Model, conn, stdout, args)
     except errors.ThesisError as e:
         logging.error("an error occured '%s'" % e)
         logging.error(str(e))

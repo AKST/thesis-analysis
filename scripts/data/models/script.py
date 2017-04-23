@@ -26,5 +26,5 @@ class Script(util.ModelBase):
     @classmethod
     def _sql(cls, cursor, meta, id=None) -> str:
         with_repr = meta.flags.get('with_repr', False)
-        query_fn = queries.scripts_with_repr if with_repr else queries.scripts_without_repr
-        return query_fn(cursor, **util.get_meta(meta), id=id)
+        query_fn = queries.get_scripts(meta.flags, id=id)
+        return query_fn(cursor, **util.get_meta(meta))

@@ -3,10 +3,13 @@ class _WhereBuild:
     def __init__(self):
         self._values = {}
         self._ops = {}
+        self._style = {}
 
-    def add(self, name, value, op='='):
+    def add(self, name, value, op='=', stylise=None):
         self._values[name] = value
         self._ops[name] = op
+        if stylise:
+            self._style[name] = stylise
 
     def format(self):
         if not self._values:
@@ -16,7 +19,8 @@ class _WhereBuild:
         formats = []
 
         for key, value in self._values.items():
-            conds.append("%s %s %%s" % (key, self._ops[key]))
+            style = self._style[key] if key in self._style else "%s"
+            conds.append("%s %s %s" % (key, self._ops[key], style))
             formats.append(value)
 
         if len(conds):
@@ -26,7 +30,7 @@ class _WhereBuild:
 
 def get_results(flags, api=False):
     where = _WhereBuild()
-    if 'file_extension' in flags:
+    if 'file_extension' in flags and flags['file_extension']:
         where.add('file_extension', flags['file_extension'])
 
     if api:
@@ -44,19 +48,30 @@ def get_results(flags, api=False):
     else:
         return _select_all_from(table, where)
 
+def get_scripts(flags, id=None):
+    where = _WhereBuild()
+    if id != None:
+        where.add('id', id, stylise=" decode(%s, 'hex' ) ")
+    with_repr = flags['with_repr'] if 'with_repr' in flags else False
+    return (_scripts_with_repr if with_repr else _scripts_without_repr)(where)
+
 ############################################################
 
-def scripts_with_repr(cur, count, offset):
-    return cur.mogrify("""
-        select id, tags, repr from thesis.benchmark_script
-        OFFSET %s LIMIT %s
-    """, (offset, count))
+def _scripts_without_repr(where):
+    def impl(cursor, count, offset):
+        return format_query(cursor, count, offset, [
+            " SELECT id, tags, repr FROM thesis.benchmark_script ",
+            where.format(),
+        ])
+    return impl
 
-def scripts_without_repr(cur, count, offset):
-    return cur.mogrify("""
-        select id, tags from thesis.benchmark_script
-        OFFSET %s LIMIT %s
-    """, (offset, count))
+def _scripts_with_repr(where):
+    def impl(cursor, count, offset):
+        return format_query(cursor, count, offset, [
+            " SELECT id, tags FROM thesis.benchmark_script ",
+            where.format(),
+        ])
+    return impl
 
 def _select_all_from(table, where):
     def impl(cursor, count, offset):
@@ -65,6 +80,7 @@ def _select_all_from(table, where):
             where.format(),
         ])
     return impl
+
 
 def get_package(cur, count, offset, id=None):
     where = _WhereBuild()
@@ -146,5 +162,7 @@ def format_query(cursor, count, offset, chunks):
     if count != None:
         query += " LIMIT %s "
         formats += (count,)
-    return cursor.mogrify(query, formats)
+    q = cursor.mogrify(query, formats)
+    print(q)
+    return q
 
