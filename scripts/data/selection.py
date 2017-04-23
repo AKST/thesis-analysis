@@ -1,3 +1,4 @@
+
 class _WhereBuild:
     def __init__(self):
         self._values = {}
@@ -64,6 +65,12 @@ def _select_all_from(table, where):
             where.format(),
         ])
     return impl
+
+def get_package(cur, count, offset, id=None):
+    where = _WhereBuild()
+    if id != None:
+        where.add('id', id)
+    return _select_all_from('package', where)(cur, count, offset)
 
 def _results_api_avg(table, where):
     def impl(cursor, count, offset):

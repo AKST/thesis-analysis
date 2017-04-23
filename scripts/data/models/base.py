@@ -18,10 +18,11 @@ class ModelEncoder(json.JSONEncoder):
             return json.JSONEncoder.default(self, obj)
 
 class ModelBase(metaclass=ABCMeta):
-    def __init__(self, type, attributes=None, relations=None):
-        self._type = type
-        self._attrs = attributes or []
-        self._rels = relations or {}
+    _type = None
+    _attributes = None
+    _relations = None
+    def __init__(self):
+        pass
 
     def get_type(self):
         return self._type
@@ -32,7 +33,9 @@ class ModelBase(metaclass=ABCMeta):
 
     def get_attributes(self):
         attrs = {}
-        for key in self._attrs:
+        if not self._attributes:
+            return None
+        for key in self._attributes:
             value = getattr(self, key)
             if isinstance(value, Decimal):
                 attrs[key] = float(value)
@@ -42,21 +45,48 @@ class ModelBase(metaclass=ABCMeta):
 
     def get_relations(self):
         rels = {}
-        for name, ty in self._rels.items():
+        if not self._relations:
+            return None
+
+        def get_label(name, ty):
+            return ty['name'] if isinstance(ty, dict) else name
+
+        def get_type(ty):
+            return ty['type'] if isinstance(ty, dict) else ty
+
+        for name, ty in self._relations.items():
             value = getattr(self, name)
+            label = get_label(name, ty)
+            _type = get_type(ty)
             if isinstance(value, list):
-                rels[name] = []
+                rels[label] = []
                 for entry in value:
-                    rels[name].append({
-                        "type": ty,
+                    rels[label].append({
+                        "type": _type,
                         "id": entry,
                     })
             else:
-                rels[name] = {
-                    "type": ty,
+                rels[label] = {
+                    "type": _type,
                     "id": value,
                 }
         return rels
+
+    @classmethod
+    def _sql(cls, cursor, meta, id=None):
+        raise NotImplemented()
+
+    @classmethod
+    def find(cls, conn, meta=None):
+        cursor = conn.cursor()
+        cursor.execute(cls._sql(cursor, meta, id=meta.query_id))
+        return apply_to_constructor(cls, cursor, label=cls._type)
+
+    @classmethod
+    def all(cls, conn, meta=None):
+        cursor = conn.cursor()
+        cursor.execute(cls._sql(cursor, meta))
+        return apply_to_constructor(cls, cursor, label=cls._type)
 
 class ModelCursor:
     def __init__(self, items, names, cursor, label=None):

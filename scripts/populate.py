@@ -160,6 +160,6 @@ if __name__ == '__main__':
             config_meta = load_json_file(f)
         with pg_connection(args) as conn:
             run_analysis(r_dir=args.data_folder, meta=config_meta, log=True, conn=conn)
-    except errors.AnalysisError as e:
+    except errors.PopulationError as e:
         l.exception("%s", e)
 

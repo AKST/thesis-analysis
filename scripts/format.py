@@ -22,27 +22,41 @@ def format_csv(w_file, cursor):
         row_tuple = map(_fmt_col, cursor.as_tuple(row))
         print(','.join(row_tuple), file=w_file)
 
-def format_json(w_file, cursor):
+def format_json(w_file, cursor, single=False, **kwargs):
     entries = []
     resource = { "meta": {}, "data": entries }
     if cursor.label:
         resource['meta']['type'] = cursor.label
+
     for row in cursor:
         entries.append(row)
+
+    if single:
+        resource['data'] = entries[0]
     dump_json(resource, w_file, cls=ModelEncoder)
 
 
-def format_into(w_file, fmt, cursor):
+def format_into(w_file, fmt, cursor, **kwargs):
     if fmt == 'csv':
         format_csv(w_file, cursor)
     elif fmt == 'json':
-        format_json(w_file, cursor)
+        format_json(w_file, cursor, **kwargs)
+
+def from_db(conn, output, args):
+    if args.query_id:
+        with Model.find(conn, args) as items:
+            format_into(output, fmt=args.format, cursor=items, single=True)
+    else:
+        with Model.all(conn, args) as items:
+            format_into(output, fmt=args.format, cursor=items)
 
 if __name__ == '__main__':
     from psycopg2 import connect as db_connect
     from sys import stdout, exit
 
+    import common.errors as errors
     from data.models.script import Script
+    from data.models.package import Package
     from data.models.results import ResultsReadable, ResultsAPI
     from data.connect import pg_connection
     from cli.config import setup_logging
@@ -52,6 +66,7 @@ if __name__ == '__main__':
         'thesis.benchmark_script': Script,
         'thesis.results_readable': ResultsReadable,
         'thesis.results_api': ResultsAPI,
+        'thesis.package': Package,
     }
 
     args = arg_parser.parse_args()
@@ -64,6 +79,9 @@ if __name__ == '__main__':
         logging.error("%(view)s is not a db view" % locals())
         exit(1)
 
-    with pg_connection(args) as conn:
-        with Model.all(conn, args) as items:
-            format_into(stdout, fmt=args.format, cursor=items)
+    try:
+        with pg_connection(args) as conn:
+            from_db(conn, stdout, args)
+    except errors.ThesisError as e:
+        logging.error("an error occured '%s'" % e)
+        logging.error(str(e))
