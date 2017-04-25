@@ -54,7 +54,7 @@ class ModelBase(metaclass=ABCMeta):
             value = getattr(self, key)
             if isinstance(value, Decimal):
                 attrs[key] = float(value)
-            if isinstance(value, datetime):
+            elif isinstance(value, datetime):
                 attrs[key] = str(value)
             else:
                 attrs[key] = value
