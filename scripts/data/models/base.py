@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any
 from decimal import Decimal
+from datetime import datetime
 import json
 
 def dashize_obj(item):
@@ -53,6 +54,8 @@ class ModelBase(metaclass=ABCMeta):
             value = getattr(self, key)
             if isinstance(value, Decimal):
                 attrs[key] = float(value)
+            if isinstance(value, datetime):
+                attrs[key] = str(value)
             else:
                 attrs[key] = value
         return attrs

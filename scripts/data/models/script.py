@@ -2,6 +2,7 @@ from typing import Set
 from typing import Union
 from typing import Any
 from typing import Iterator
+from datetime import datetime
 
 import data.selection as queries
 
@@ -12,13 +13,15 @@ class Script(util.ModelBase):
     _attributes = [
         "tags",
         "repr",
+        "last_modified",
     ]
 
-    def __init__(self, id: Any, tags: Set[str], repr: str=None) -> None:
+    def __init__(self, id: Any, tags: Set[str], last_modified: datetime, repr: str=None) -> None:
         super(Script, self).__init__()
         self.id = bytearray(id).hex()
         self.tags = tags
         self.repr = repr
+        self.last_modified = last_modified
 
     def get_id(self):
         return self.id

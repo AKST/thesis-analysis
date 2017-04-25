@@ -72,7 +72,7 @@ def get_filetypes():
 @app.route("/api/v0/scripts/<id>", methods=["GET"])
 def get_script(id=None):
     flags = {}
-    flags['with_repr'] = 'with_repr' in request.args
+    flags['with_repr'] = True
     query = DataQuery(flags, query_id=id)
     return query_model(Script, query)
 

@@ -69,7 +69,7 @@ def get_filetypes(cur, **kwargs):
 def _scripts_without_repr(where):
     def impl(cursor, count, offset):
         return format_query(cursor, count, offset, [
-            " SELECT id, tags FROM thesis.benchmark_script ",
+            " SELECT id, tags, last_modified FROM thesis.benchmark_script ",
             where.format(),
         ])
     return impl
@@ -77,7 +77,7 @@ def _scripts_without_repr(where):
 def _scripts_with_repr(where):
     def impl(cursor, count, offset):
         return format_query(cursor, count, offset, [
-            " SELECT id, tags, repr FROM thesis.benchmark_script ",
+            " SELECT id, tags, last_modified, repr FROM thesis.benchmark_script ",
             where.format(),
         ])
     return impl
