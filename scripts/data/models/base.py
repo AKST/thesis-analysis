@@ -3,16 +3,30 @@ from typing import Any
 from decimal import Decimal
 import json
 
+def dashize_obj(item):
+    def dashize_key(key):
+        for char in key:
+            if char.isupper():
+                yield '-%s' % key.lower()
+            elif char == '_':
+                yield '-'
+            else:
+                yield char
+
+    if isinstance(item, dict):
+        return { ''.join(dashize_key(key)): dashize_obj(value) \
+                for key, value, in item.items() }
+    else:
+        return item
+
 class ModelEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, ModelBase):
             return {
                 "id": obj.get_id(),
-                "type": obj.get_type(),
-                "data": {
-                    "attributes": obj.get_attributes(),
-                    "relations": obj.get_relations()
-                }
+                "type": '%ss' % obj.get_type(),
+                "attributes": dashize_obj(obj.get_attributes()),
+                "relationships": dashize_obj(obj.get_relations())
             }
         else:
             return json.JSONEncoder.default(self, obj)
@@ -52,7 +66,7 @@ class ModelBase(metaclass=ABCMeta):
             return ty['name'] if isinstance(ty, dict) else name
 
         def get_type(ty):
-            return ty['type'] if isinstance(ty, dict) else ty
+            return "%ss" % (ty['type'] if isinstance(ty, dict) else ty)
 
         for name, ty in self._relations.items():
             value = getattr(self, name)
@@ -70,7 +84,7 @@ class ModelBase(metaclass=ABCMeta):
                     "type": _type,
                     "id": value,
                 }
-        return rels
+        return { key: { "data": value } for key, value in rels.items() }
 
     @classmethod
     def _sql(cls, cursor, meta, id=None):
