@@ -65,6 +65,7 @@ if __name__ == '__main__':
     from data.models.script import Script
     from data.models.package import Package
     from data.models.results import ResultsReadable, ResultsAPI
+    from data.models.filetype import FileType
     from data.connect import pg_connection
     from cli.config import setup_logging
     from cli.format_args import parser as arg_parser
@@ -74,6 +75,7 @@ if __name__ == '__main__':
         'thesis.results_readable': ResultsReadable,
         'thesis.results_api': ResultsAPI,
         'thesis.package': Package,
+        'thesis.filetype': FileType,
     }
 
     args = arg_parser.parse_args()

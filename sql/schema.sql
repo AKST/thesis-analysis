@@ -101,6 +101,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS unique_result_batch_version
 CREATE UNIQUE INDEX IF NOT EXISTS unique_fileoutput_relativepath_result
   ON thesis.file_output (result, relative_path);
 
+\i sql/views/file_types.sql
 \i sql/views/result_hashed.sql
 \i sql/views/result_variations.sql
 

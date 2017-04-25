@@ -55,6 +55,15 @@ def get_scripts(flags, id=None):
     with_repr = flags['with_repr'] if 'with_repr' in flags else False
     return (_scripts_with_repr if with_repr else _scripts_without_repr)(where)
 
+def get_package(cur, count, offset, id=None):
+    where = _WhereBuild()
+    if id != None:
+        where.add('id', id)
+    return _select_all_from('package', where)(cur, count, offset)
+
+def get_filetypes(cur, **kwargs):
+    return cur.mogrify(" SELECT * from thesis.unique_filetypes")
+
 ############################################################
 
 def _scripts_without_repr(where):
@@ -82,11 +91,6 @@ def _select_all_from(table, where):
     return impl
 
 
-def get_package(cur, count, offset, id=None):
-    where = _WhereBuild()
-    if id != None:
-        where.add('id', id)
-    return _select_all_from('package', where)(cur, count, offset)
 
 def _results_api_avg(table, where):
     def impl(cursor, count, offset):
