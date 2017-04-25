@@ -7,6 +7,7 @@ from format import from_db
 import common.errors as errors
 from data.models.script import Script
 from data.models.package import Package
+from data.models.filetype import FileType
 from data.models.results import ResultsAPI
 
 app = Flask("thesis")
@@ -63,6 +64,11 @@ def get_scripts():
     query = DataQuery(flags)
     return query_model(Script, query)
 
+@app.route("/api/v0/filetypes", methods=["GET"])
+def get_filetypes():
+    query = DataQuery({})
+    return query_model(FileType, query)
+
 @app.route("/api/v0/scripts/<id>", methods=["GET"])
 def get_script(id=None):
     flags = {}
@@ -77,6 +83,8 @@ def get_results():
     flags['avg'] = True
     flags['file_extension'] = request.args.get('fileExtension', None)
     return query_model(ResultsAPI, DataQuery(flags))
+
+
 
 
 if __name__ == '__main__':
