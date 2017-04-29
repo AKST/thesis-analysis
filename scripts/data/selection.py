@@ -28,6 +28,16 @@ class _WhereBuild:
         else:
             return (), ""
 
+def get_api_results(flags):
+    where = _WhereBuild()
+    if 'file_extension' in flags and flags['file_extension']:
+        where.add('file_extension', flags['file_extension'])
+
+    if 'script_hash' in flags and flags['script_hash']:
+        where.add('script_hash', flags['script_hash'], stylise=" decode(%s, 'hex' ) ")
+
+    return _results_api_view(where)
+
 def get_results(flags, api=False):
     where = _WhereBuild()
     if 'file_extension' in flags and flags['file_extension']:
@@ -35,7 +45,7 @@ def get_results(flags, api=False):
 
     if api:
         table = 'results_api_latest_O2'
-        avg_f = _results_api_avg
+        avg_f = _results_api_avg_latest_o2
     else:
         avg_f = _results_readable_avg
         if 'O' in flags and int(flags['O']) == 2:
@@ -90,9 +100,32 @@ def _select_all_from(table, where):
         ])
     return impl
 
+def _results_api_view(where):
+    def impl(cursor, count, offset):
+        return format_query(cursor, count, offset, [
+            """
+                SELECT
+                    package_id,
+                    ghc_version,
+                    file_extension,
+                    average_time,
+                    SUM(file_size) as file_size,
+                    script_hash
+                FROM thesis.results_hashed
+            """,
+            where.format(),
+            """
+                GROUP BY
+                    package_id,
+                    ghc_version,
+                    file_extension,
+                    average_time,
+                    script_hash
+            """,
+        ])
+    return impl
 
-
-def _results_api_avg(table, where):
+def _results_api_avg_latest_o2(table, where):
     def impl(cursor, count, offset):
         return format_query(cursor, count, offset, [
             ("""

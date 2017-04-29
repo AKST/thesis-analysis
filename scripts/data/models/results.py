@@ -89,5 +89,5 @@ class ResultsAPI(util.ModelBase):
     def _sql(cls, cursor, meta, id=None) -> str:
         if id != None:
             raise errors.IllegalOperation()
-        query = queries.get_results(meta.flags, api=True)
+        query = queries.get_api_results(meta.flags)
         return query(cursor, **util.get_meta(meta))

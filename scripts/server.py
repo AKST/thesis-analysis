@@ -81,6 +81,7 @@ def get_results():
     flags = {}
     flags['O'] = 2
     flags['avg'] = True
+    flags['script_hash'] = request.args.get('scriptHash', None)
     flags['file_extension'] = request.args.get('fileExtension', None)
     return query_model(ResultsAPI, DataQuery(flags))
 
