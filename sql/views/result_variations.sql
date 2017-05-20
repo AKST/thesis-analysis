@@ -9,7 +9,7 @@ CREATE OR REPLACE VIEW thesis.results_readable AS
        , benchmark_script.tags AS script_tags
        , benchmark_script.last_modified as script_age
     FROM thesis.results_hashed as results
-       , thesis.package as package
+       , thesis.package_whitelist as package
        , thesis.benchmark_script as benchmark_script
     WHERE results.package_id = package.id
       AND benchmark_script.id = results.script_hash

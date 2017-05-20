@@ -50,13 +50,25 @@ UPDATE thesis.benchmark_script
   WHERE repr ~ '-O2'
     AND not(thesis.tags_contains(tags, 'optimization:2'));
 
+-- tags shared builds disabled
+UPDATE thesis.benchmark_script
+  SET tags = tags || array['shared:disabled']
+  WHERE repr SIMILAR TO '%\n\s+(cabal)\s+(configure)\s+(--disable-shared)\s*\n%'
+    AND not(thesis.tags_contains(tags, 'shared:disabled'));
+
+-- tags shared builds enabled
+UPDATE thesis.benchmark_script
+  SET tags = tags || array['shared:enabled']
+  WHERE not(repr SIMILAR TO '%\n\s+(cabal)\s+(configure)\s+(--disable-shared)\s*\n%')
+    AND not(thesis.tags_contains(tags, 'shared:enabled'));
+
 
 -- for scripts where both the output size and compile time
 -- benchmarks use consistent optimization flags, there are
 -- some cases where does not happen, it happens during cases
 -- where the representation matches the similarity checks
 UPDATE thesis.benchmark_script
-  SET tags = tags || array['shared_optimization']
+  SET tags = tags || array['consistent_optimization']
   WHERE ((repr ~ 'local target_optimization="-O[0-2\*]"') OR not(repr ~ '-O'))
-    AND not(thesis.tags_contains(tags, 'shared_optimization'));
+    AND not(thesis.tags_contains(tags, 'consistent_optimization'));
 

@@ -7,7 +7,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS thesis.results_hashed AS
         result.version AS ghc_version,
         avg(result.seconds) AS average_time,
         batch.checksum AS checksum
-      FROM thesis.package AS package,
+      FROM thesis.package_whitelist AS package,
            thesis.batch AS batch,
            thesis.result AS result
       WHERE package.id = batch.package
@@ -22,7 +22,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS thesis.results_hashed AS
         sum(file_output.file_size) AS total_size,
         file_output.file_extension AS extension,
         batch.checksum AS checksum
-      FROM thesis.package AS package,
+      FROM thesis.package_whitelist AS package,
            thesis.batch AS batch,
            thesis.result AS result,
            thesis.file_output AS file_output

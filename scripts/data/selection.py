@@ -69,7 +69,7 @@ def get_package(cur, count, offset, id=None):
     where = _WhereBuild()
     if id != None:
         where.add('id', id)
-    return _select_all_from('package', where)(cur, count, offset)
+    return _select_all_from('package_whitelist', where)(cur, count, offset)
 
 def get_filetypes(cur, **kwargs):
     return cur.mogrify(" SELECT * from thesis.unique_filetypes")

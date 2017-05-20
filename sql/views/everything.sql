@@ -14,7 +14,7 @@ CREATE OR REPLACE VIEW thesis.everything_linked AS
        , file_output.relative_path  as file_output_relative_path
        , file_output.file_extension as file_output_file_extension
        , file_output.file_size      as file_output_file_size
-    FROM thesis.package                   as package
+    FROM thesis.package_whitelist         as package
        RIGHT JOIN thesis.batch            as batch       ON batch.package      = package.id
        RIGHT JOIN thesis.benchmark_script as script      ON script.id          = batch.checksum
        RIGHT JOIN thesis.result           as result      ON result.batch       = batch.id
