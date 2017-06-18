@@ -72,3 +72,12 @@ UPDATE thesis.benchmark_script
   WHERE ((repr ~ 'local target_optimization="-O[0-2\*]"') OR not(repr ~ '-O'))
     AND not(thesis.tags_contains(tags, 'consistent_optimization'));
 
+-- TEMPORARY measure for hiding examples with disabled shared build
+-- due to the faulty nature of the results.
+UPDATE thesis.benchmark_script
+  SET tags = tags || array['blacklisted']
+  WHERE (thesis.tags_contains(tags, 'shared:disabled')
+     OR  thesis.tags_contains(tags, 'optimization:?')
+     OR not(thesis.tags_contains(tags, 'consistent_optimization')))
+    AND not(thesis.tags_contains(tags, 'blacklisted'));
+

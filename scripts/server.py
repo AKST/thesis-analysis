@@ -116,4 +116,4 @@ if __name__ == '__main__':
         else:
             raise errors.ImmpossibleAcceptType(accepts)
 
-    app.run(port=args.port)
+    app.run(host='0.0.0.0', port=args.port)

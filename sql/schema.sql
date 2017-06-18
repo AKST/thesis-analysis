@@ -107,6 +107,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS unique_fileoutput_relativepath_result
 \i sql/views/result_hashed.sql
 \i sql/views/result_variations.sql
 \i sql/views/everything.sql
+\i sql/views/scripts.sql
+\i sql/permissions.sql
 
 
 
