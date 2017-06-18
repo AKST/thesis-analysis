@@ -36,10 +36,10 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS thesis.results_hashed AS
          time_avg.average_time AS average_time,
          file_size.total_size AS file_size,
          file_size.extension AS file_extension,
-         thesis.benchmark_script.id as script_hash
+         scripts.id as script_hash
     FROM file_size
-      INNER JOIN thesis.benchmark_script
-        ON thesis.benchmark_script.id = file_size.checksum
+      INNER JOIN thesis.benchmark_script_whitelist
+        AS scripts ON scripts.id = file_size.checksum
       INNER JOIN time_avg
         ON time_avg.package_id = file_size.package_id
         AND time_avg.checksum = file_size.checksum
@@ -48,4 +48,4 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS thesis.results_hashed AS
       time_avg.package_id ASC,
       time_avg.ghc_version DESC,
       extension ASC,
-      thesis.benchmark_script.id ASC;
+      scripts.id ASC;
